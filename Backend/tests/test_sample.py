@@ -1,6 +1,6 @@
 import pytest
 import json
-from app import app, mysql
+from Backend import app, mysql
 from flask import session
 
 @pytest.fixture
