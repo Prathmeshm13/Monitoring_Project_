@@ -20,10 +20,10 @@ app.config['MYSQL_DB'] = 'failure_monitoring'
 mysql = MySQL(app)
 
 # Load ML models
-regressor = joblib.load("C:/Users/1041210/OneDrive - Blue Yonder/Desktop/FINAL_PYTHON_PROJECT/Backend/Data_generator/models/xgb_regressor.pkl")
-classifier = joblib.load("C:/Users/1041210/OneDrive - Blue Yonder/Desktop/FINAL_PYTHON_PROJECT/Backend/Data_generator/models/trained_classifier (1).pkl")
+regressor = joblib.load("Backend/Data_generator/models/xgb_regressor.pkl")
+classifier = joblib.load("Backend/Data_generator/models/trained_classifier (1).pkl")
 
-csv_file_path = "C:/Users/1041210/OneDrive - Blue Yonder/Desktop/FINAL_PYTHON_PROJECT/Backend/Data_generator/ur5_motor1_failure_pattern.csv"
+csv_file_path = "Backend/Data_generator/ur5_motor1_failure_pattern.csv"
 
 data_buffer = []
 
