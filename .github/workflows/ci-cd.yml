@@ -31,7 +31,7 @@ jobs:
       - name: Run Pytest
         run: |
           source venv/bin/activate
-          pytest app/tests/ --maxfail=5 --disable-warnings -v
+          pytest Backend/tests/ --maxfail=5 --disable-warnings -v
 
       - name: Debug Python Paths
         run: |
