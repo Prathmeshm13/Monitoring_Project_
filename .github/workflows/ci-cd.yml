@@ -1,4 +1,4 @@
-name: Python Tests
+name: Python Tests and CI/CD
 
 on: [push, pull_request]
 
@@ -21,7 +21,7 @@ jobs:
           source venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest
+          pip install pytest flask flask-cors flask-mysqldb werkzeug pandas numpy joblib
 
       - name: Debug Installed Packages
         run: |
@@ -30,7 +30,8 @@ jobs:
 
       - name: Run Pytest
         run: |
-         venv/bin/python -m pytest --maxfail=5 --disable-warnings -v
+          source venv/bin/activate
+          pytest app/tests/ --maxfail=5 --disable-warnings -v
 
       - name: Debug Python Paths
         run: |
