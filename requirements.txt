@@ -8,4 +8,4 @@ joblib
 gunicorn
 pytest
 xgboost
-sklearn
+scikit-learn
