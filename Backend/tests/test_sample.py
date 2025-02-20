@@ -5,8 +5,8 @@ import joblib
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # Load ML models
-regressor = joblib.load("C:/Users/1041210/OneDrive - Blue Yonder/Desktop/FINAL_PYTHON_PROJECT/Backend/Data_generator/models/xgb_regressor.pkl")
-classifier = joblib.load("C:/Users/1041210/OneDrive - Blue Yonder/Desktop/FINAL_PYTHON_PROJECT/Backend/Data_generator/models/trained_classifier (1).pkl")
+regressor_path = "models/xgb_regressor.pkl"
+classifier_path = "models/trained_classifier (1).pkl"
 
 def test_password_hashing():
     password = "testpassword"
