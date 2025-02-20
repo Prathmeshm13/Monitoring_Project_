@@ -1,0 +1,9 @@
+Flask
+flask-cors
+flask-mysqldb
+werkzeug
+pandas
+numpy
+joblib
+gunicorn
+pytest
