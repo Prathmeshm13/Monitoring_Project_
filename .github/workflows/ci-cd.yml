@@ -37,14 +37,11 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          python -m venv venv
-          source venv/bin/activate
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Run Linter (Flake8)
         run: |
-          source venv/bin/activate
           pip install flake8
           flake8 --ignore=E501 app/
 
@@ -55,7 +52,6 @@ jobs:
           MYSQL_PASSWORD: root
           MYSQL_DB: failure_monitoring
         run: |
-          source venv/bin/activate
           pip install pytest
           pytest tests/
 
@@ -74,8 +70,6 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          python -m venv venv
-          source venv/bin/activate
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
@@ -90,7 +84,6 @@ jobs:
             cd /path/to/your/project
             git fetch --all
             git reset --hard origin/main
-            source venv/bin/activate
             pip install -r requirements.txt
             systemctl restart flaskapp
           EOF
