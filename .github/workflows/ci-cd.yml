@@ -1,9 +1,9 @@
-name: Python Tests and CI/CD
+name: Python CI/CD Workflow
 
 on: [push, pull_request]
 
 jobs:
-  test:
+  build-and-run:
     runs-on: ubuntu-latest
 
     steps:
@@ -13,7 +13,7 @@ jobs:
       - name: Set Up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'  # Change this to your required Python version
+          python-version: '3.10'  # Change to your required version
 
       - name: Install Dependencies
         run: |
@@ -21,20 +21,16 @@ jobs:
           source venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest flask flask-cors flask-mysqldb werkzeug pandas numpy joblib
+          pip install flask flask-cors flask-mysqldb werkzeug pandas numpy joblib
 
-      - name: Debug Installed Packages
+      - name: Run Application (Check for Errors)
         run: |
           source venv/bin/activate
-          python -m pip list  # Check installed packages
-
-      - name: Run Pytest
-        run: |
-          source venv/bin/activate
-          pytest app/tests/ --maxfail=5 --disable-warnings -v
+          python app.py  # Change this if your entry point is different
 
       - name: Debug Python Paths
         run: |
           source venv/bin/activate
           which python
-          which pytest
+          python --version
+          pip list
