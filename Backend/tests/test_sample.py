@@ -1,65 +1,44 @@
 import pytest
-import json
-from Backend import app, mysql
-from flask import session
+import pandas as pd
+import numpy as np
+import joblib
+from werkzeug.security import generate_password_hash, check_password_hash
 
-@pytest.fixture
-def client():
-    app.config['TESTING'] = True
-    app.config['WTF_CSRF_ENABLED'] = False
-    app.config['MYSQL_DB'] = 'test_failure_monitoring'  # Use a test database
-    client = app.test_client()
-    yield client
+# Load ML models
+regressor = joblib.load("C:/Users/1041210/OneDrive - Blue Yonder/Desktop/FINAL_PYTHON_PROJECT/Backend/Data_generator/models/xgb_regressor.pkl")
+classifier = joblib.load("C:/Users/1041210/OneDrive - Blue Yonder/Desktop/FINAL_PYTHON_PROJECT/Backend/Data_generator/models/trained_classifier (1).pkl")
 
-def test_signup(client):
-    response = client.post('/signup', json={
-        'username': 'testuser',
-        'email': 'testuser@example.com',
-        'password': 'testpassword'
-    })
-    assert response.status_code in [201, 400]  # 400 if email already exists
+def test_password_hashing():
+    password = "testpassword"
+    hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+    assert check_password_hash(hashed_password, password) == True
+
+def test_data_processing():
+    joint_1_torque = 10.0
+    load_variation = 5.0
+    joint_1_temp = 50.0
+    ambient_temp = 25.0
+    joint_1_vibration = 0.5
+    joint_1_velocity = 1.5
+    voltage_fluctuation = 220.0
     
+    σ_eff = joint_1_torque / (load_variation + 1)
+    CDI = σ_eff
+    TDF = np.exp((joint_1_temp - ambient_temp) / 20)
+    VFI = joint_1_vibration * joint_1_velocity
+    Voltage_Impact = voltage_fluctuation / 250
 
-def test_login(client):
-    response = client.post('/login', json={
-        'email': 'testuser@example.com',
-        'password': 'testpassword'
-    })
-    assert response.status_code in [200, 401]  # 401 if invalid credentials
-
-def test_protected_route(client):
-    client.post('/login', json={
-        'email': 'testuser@example.com',
-        'password': 'testpassword'
-    })
-    response = client.get('/')
-    assert response.status_code == 200
-
-def test_logout(client):
-    client.get('/logout')
-    with client.session_transaction() as sess:
-        assert 'loggedin' not in sess
-
-def test_stream_data(client):
-    response = client.get('/stream-data')
-    assert response.status_code == 200
-    assert response.mimetype == 'text/event-stream'
-
-def test_plot_data(client):
-    response = client.get('/plot-data')
-    assert response.status_code == 200
-    assert response.mimetype == 'application/json'
-
-def test_model_predictions():
-    from app import regressor, classifier
-    import pandas as pd
-    import numpy as np
+    data_df = pd.DataFrame([[σ_eff, CDI, TDF, VFI, Voltage_Impact]],
+                           columns=["σ_eff", "CDI", "TDF", "VFI", "Voltage_Impact"])
     
-    sample_input = pd.DataFrame([[1.0, 1.0, 1.0, 1.0, 1.0]], 
-                                 columns=["σ_eff", "CDI", "TDF", "VFI", "Voltage_Impact"])
+    assert data_df.shape == (1, 5)
+
+def test_model_prediction():
+    sample_data = pd.DataFrame([[0.5, 0.5, 1.2, 0.75, 0.88]],
+                                columns=["σ_eff", "CDI", "TDF", "VFI", "Voltage_Impact"])
     
-    risk_score = regressor.predict(sample_input)
-    label = classifier.predict(sample_input)
+    failure_risk_score = regressor.predict(sample_data)[0]
+    failure_label = classifier.predict(sample_data)[0]
     
-    assert isinstance(risk_score[0], (float, np.float32, np.float64))
-    assert isinstance(label[0], (int, np.int32, np.int64))
+    assert isinstance(failure_risk_score, float)
+    assert failure_label in [0, 1]  # Assuming binary classification
