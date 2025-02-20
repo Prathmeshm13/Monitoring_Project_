@@ -1,4 +1,4 @@
-name: CI/CD Pipeline for Flask
+name: Flask CI/CD
 
 on:
   push:
@@ -12,25 +12,52 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: failure_monitoring
+          MYSQL_USER: user
+          MYSQL_PASSWORD: password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --host=localhost --user=root --password=root"
+          --health-interval=10s --health-timeout=5s --health-retries=5
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set Up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: "3.9"
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: |
           python -m venv venv
           source venv/bin/activate
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run Tests
+      - name: Run Linter (Flake8)
         run: |
           source venv/bin/activate
-          pytest
+          pip install flake8
+          flake8 --ignore=E501 app/
+
+      - name: Run Unit Tests (Pytest)
+        env:
+          MYSQL_HOST: localhost
+          MYSQL_USER: root
+          MYSQL_PASSWORD: root
+          MYSQL_DB: failure_monitoring
+        run: |
+          source venv/bin/activate
+          pip install pytest
+          pytest tests/
 
   deploy:
     needs: build
@@ -40,29 +67,30 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set Up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: "3.9"
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: |
           python -m venv venv
           source venv/bin/activate
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Deploy to Server (Example)
+      - name: Deploy to Server
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
-          echo "$SSH_PRIVATE_KEY" > private_key.pem
-          chmod 600 private_key.pem
-          ssh -o StrictHostKeyChecking=no -i private_key.pem ${SERVER_USER}@${SERVER_IP} << 'EOF'
-            cd /path/to/your/flask/project
-            git pull origin main
+          echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
+          ssh -o StrictHostKeyChecking=no -i private_key $SERVER_USER@$SERVER_IP << 'EOF'
+            cd /path/to/your/project
+            git fetch --all
+            git reset --hard origin/main
             source venv/bin/activate
             pip install -r requirements.txt
-            sudo systemctl restart flask_app
+            systemctl restart flaskapp
           EOF
